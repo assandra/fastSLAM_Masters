@@ -24,5 +24,7 @@ control_new = np.array([88,2])
 covariance_old = np.matrix ([[2,6,5],
                              [2,4,1],
                              [3,5,1]])
+environment_2d = np.array([1,2,1])
+measurement_3D = np.array([2,2,2])[:,None]
 
-print EKF_localization_known_correspondence(mu_old, covariance_old, control_new, 3,1,1)
+print EKF_localization_known_correspondence(mu_old, covariance_old, control_new, measurement_3D,1,environment_2d)
