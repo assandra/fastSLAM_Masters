@@ -17,3 +17,6 @@ class Particle:
 
     def set_covariance_1(self, covariance_1):
         self.covariance_1 = covariance_1
+
+    def set_weight(self, weight):
+        self.weight = weight

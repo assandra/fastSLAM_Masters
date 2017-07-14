@@ -87,4 +87,4 @@ def EKF_localization_known_correspondence(mu_1, covariance, control, measurement
     identity_3matrix = np.matrix(np.identity(3), copy=False)
 
     update_covariance1 = (identity_3matrix - kalman_gain*jacobian_H)*update_covariance
-    return update_covariance
+    return uncertainty_measurement

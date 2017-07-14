@@ -3,6 +3,7 @@ from Particle import Particle
 import numpy as np
 import Testing
 from Step2 import EKF_localization_known_correspondence
+from Step3 import importance_weighting
 
 
 """ Initialize a set of N initial particles, these will 
@@ -26,5 +27,8 @@ covariance_old = np.matrix ([[2,6,5],
                              [3,5,1]])
 environment_2d = np.array([1,2,1])
 measurement_3D = np.array([2,2,2])[:,None]
+measurement_corrected_vector = np.array([5,5,1])[:,None] # this will come from step 2
 
-print EKF_localization_known_correspondence(mu_old, covariance_old, control_new, measurement_3D,1,environment_2d)
+measurement_correction = EKF_localization_known_correspondence(mu_old, covariance_old, control_new, measurement_3D,1,environment_2d)
+print importance_weighting(measurement_correction, measurement_3D, measurement_corrected_vector)
+
