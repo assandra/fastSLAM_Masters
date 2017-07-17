@@ -30,5 +30,11 @@ measurement_3D = np.array([2,2,2])[:,None]
 measurement_corrected_vector = np.array([5,5,1])[:,None] # this will come from step 2
 
 measurement_correction = EKF_localization_known_correspondence(mu_old, covariance_old, control_new, measurement_3D,1,environment_2d)
-print importance_weighting(measurement_correction, measurement_3D, measurement_corrected_vector)
+importance_weighting(measurement_correction, measurement_3D, measurement_corrected_vector)
+
+
+keep = np.empty(5)
+print keep
+keep[0] =1
+print keep
 

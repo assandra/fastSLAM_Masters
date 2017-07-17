@@ -1,6 +1,6 @@
 import numpy as np
 
-def resampling_particle(particle_array):
+def resampling_particle(particle_array, Nmin, do_resample):
 
     #Get the total number of particles in the array
     N = len(particle_array)
@@ -31,6 +31,18 @@ def resampling_particle(particle_array):
 
     stratified_resample(w, keep, Neff)
 
+    old_particles = np.empty(len(keep))
+
+    if ((Neff <Nmin)  && (do_resample ==1)):
+        for x in range(0, len(range)):
+            particle_array[x] = old_particles[keep[x]]
+
+        for x in range(0, N):
+            new_w = 1/N
+            particle_array[x].weight = new_w
+
+
+
 def stratified_resample(w, keep, Neff):
 
     #Create a vector, which is the same size as the weights array
@@ -49,7 +61,7 @@ def stratified_resample(w, keep, Neff):
     Neff = 1/np.sum(wsqrd)
 
     #Make keep vector, equal the size of the weights array vector
-    keep = np.array(len(w))
+    keep = np.empty(len(w))
 
     #Set all of keep values to -1
     for x in range(0,len(keep)):
@@ -58,6 +70,50 @@ def stratified_resample(w, keep, Neff):
     #Create a vector to use in next function
     select = np.array()
     stratified_random(len(w), select)
+    cummulative_sum(w)
+
+    ctr = 0
+    for x in range(0, w(len)):
+        while ((ctr < len) && (select[ctr] < w[x])):
+            keep[ctr] = x
+            ctr=ctr +1
+
 
 def stratified_random(length, select):
-    
+
+    #Find the value of k, 1/size of keep array
+    k = 1/length
+
+    #Deterministic interval
+
+    #temp value
+    temp = k/2
+
+    #add temp to the end of the select vector IM ASSUMING ITS EMPTY SO MAKE IT AT THE START
+    select[0] = temp
+
+    #While loop, where a new tem is calculated and and added to the select array
+    counter = 1
+    while (temp < 1-k/2):
+        temp = temp+k
+        select[counter] = temp
+        counter = counter +1
+
+    #There is an iterator and random value function that might still need implementing
+
+def cummulative_sum(weight_array):
+    csum_vector = weight_array
+
+    for x in range(0, len(weight_array)):
+        sum =0
+        for y in range(0, x+1):
+            sum += csum_vector[y]
+
+        weight_array[x] = sum
+
+
+
+
+
+
+
