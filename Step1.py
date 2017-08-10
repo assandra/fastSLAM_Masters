@@ -8,7 +8,7 @@ import random
 import math
 import numpy as np
 
-def sample_motion_model_velocity(trans_vel, rot_vel, xval, yval, theta):
+def sample_motion_model_velocity(control,past_pose):
     """ This is the sampling algorithm which samples the velocity motion model to generate a new value for the robot pose.
         It samples this, with use of a given control vector and a past pose, which is uses to generate a random value for the recent pose,
         drawn from the velocity motion model. The values are perturbed by noise, which is modelled by a normal distribution on the control vectors.
@@ -27,16 +27,37 @@ def sample_motion_model_velocity(trans_vel, rot_vel, xval, yval, theta):
     #Need to find this value out - ROS
     duration = 1.1
 
+    s1 = alpha_1*abs(control[0]) + alpha_2*abs(control[1])
 
-    new_trans_vel = trans_vel + sample_normal_distribution(alpha_1*abs(trans_vel) + alpha_2*abs(rot_vel))
-    new_rot_vel = rot_vel + sample_normal_distribution(alpha_3*abs(trans_vel) + alpha_4*abs(rot_vel))
-    perturb_orient = sample_normal_distribution(alpha_5*abs(trans_vel) + alpha_6*abs(rot_vel))
+    """test_array = []
+    for x in range(100):
+        test_s = sample_normal_distribution(alpha_1*abs(control[0]) + alpha_2*abs(control[1]))
+        test_array.append(test_s)
 
-    new_xval = xval - (new_trans_vel/new_rot_vel) * math.sin (theta) + (new_trans_vel/new_rot_vel) * math.sin (theta + new_rot_vel*duration)
-    new_yval = yval + (new_trans_vel/new_rot_vel) * math.cos(theta) - (new_trans_vel/new_rot_vel) * math.cos(theta + new_rot_vel*duration)
-    new_theta = theta + new_rot_vel*duration + perturb_orient*duration
+    np.savetxt('test_motion_model.txt', test_array, delimiter=',')"""
 
-    return "Vector still to print"
+    new_trans_vel = control[0] + sample_normal_distribution(alpha_1*abs(control[0]) + alpha_2*abs(control[1]))
+    print "This is tthe parameter passed to the sample normal algorithm " +str(s1)
+
+    print "This is the new trans value " + str(new_trans_vel)
+
+    #new_rot_vel = rot_vel + sample_normal_distribution(alpha_3*abs(trans_vel) + alpha_4*abs(rot_vel))
+    new_rot_vel = control[1]
+    print "This is the new rot value " + str(new_rot_vel)
+    #perturb_orient = sample_normal_distribution(alpha_5*abs(trans_vel) + alpha_6*abs(rot_vel))
+    perturb_orient = 1
+
+    new_xval = past_pose[0] - (new_trans_vel/new_rot_vel) * math.sin(past_pose[2]) + (new_trans_vel/new_rot_vel) * math.sin(past_pose[2] + new_rot_vel*duration)
+    new_yval = past_pose[1] + (new_trans_vel/new_rot_vel) * math.cos(past_pose[2]) - (new_trans_vel/new_rot_vel) * math.cos(past_pose[2] + new_rot_vel*duration)
+    new_theta = past_pose[2] + new_rot_vel*duration + perturb_orient*duration
+
+    pose_new = np.array([new_xval, new_yval, new_theta])
+    pose_new1 = np.transpose(pose_new)
+
+
+    return pose_new1
+
+
 
 def sample_normal_distribution(b):
     """ Algorithm for sampling from an approximate normal distribution with zero mean and stardard deviation, b.
@@ -44,9 +65,20 @@ def sample_normal_distribution(b):
 
     min = -1 * b
     max = b
+
+    """Checks on the min and max values
+    print "This is max " +str(max)
+    print "This is mix " + str(min)
+    """
+
     s = 0
+
     for x in range(0,12):
         rand = np.random.uniform(min,max)
         s = s + rand
 
     return s * 0.5
+
+
+def sample_motion_model_odometry(control, past_pose):
+    return 0

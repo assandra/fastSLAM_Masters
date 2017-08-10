@@ -1,40 +1,53 @@
-from Step1 import sample_motion_model_velocity
-from Particle import Particle
 import numpy as np
-import Testing
-from Step2 import EKF_localization_known_correspondence
+import math
+
+from Particle import Particle
+
+from Step1 import sample_motion_model_velocity
+from Step2 import measurement_prediction, calculate_Jacobian, measurement_covariance, update_step
 from Step3 import importance_weighting
+from Step4 import low_variance_sampling
 
 
-""" Initialize a set of N initial particles, these will 
-  take for the pose vector, the known coordinates to begin with. 
-  This will most likely come from ROS. 
-  What will the initial covariance and mean values be for each landmark?"""
-#Read in corrdinate values from ROS
-#Use these values to initial N particles, using a particle array of size n
+def fastSLAM_1_0(control, measurement, particles, landmarks):
 
-""" Read in the control vector reading from ROS"""
+    #Loop through each particle
+    for x in range(len(particles)):
 
-"""For each particle:
-    Get the last pose estimate and the control vector, and send it to
-    the velocity motion model sampling algorithm, which will return a new pose, this will
-    then be used to initiate a new particle set"""
+        #Prediction Step
+        particles[x].pose = sample_motion_model_velocity(control, particles[x].pose)
 
-mu_old = np.array([1,3,2])[:,None]
-control_new = np.array([88,2])
-covariance_old = np.matrix ([[2,6,5],
-                             [2,4,1],
-                             [3,5,1]])
-environment_2d = np.array([1,2,1])
-measurement_3D = np.array([2,2,2])[:,None]
-measurement_corrected_vector = np.array([5,5,1])[:,None] # this will come from step 2
+        #Feature extractor - find one online
+        features_observed = [(1,2,1),(1,2,2)]
 
-measurement_correction = EKF_localization_known_correspondence(mu_old, covariance_old, control_new, measurement_3D,1,environment_2d)
-importance_weighting(measurement_correction, measurement_3D, measurement_corrected_vector)
+        #Run through each observed feature
+        for elem in features_observed:
+
+            #if we have not seen this feature before
+            if elem not in landmarks:
+
+                #initialize the mean
+                #THIS NEEDS TO BE CHECKED OVER
+                new_mnu = np.array([0,0,0])
+
+                #calculate Jacobian
+
+                #Initialize covariance
+
+            #If we have seen this landmark before
+            elif elem in landmarks:
+                #Update step
+                z_predicted_measurement = measurement_prediction(landmarks, particles, elem, x)
+                jacobian_H = calculate_Jacobian(landmarks, particles, elem, x)
+                measurement_covariance = measurement_covariance(jacobian_H, particles, elem, x)
+                update_step(particles, jacobian_H, measurement_covariance, measurement, z_predicted_measurement, elem,
+                            x)
+
+                #Importance weighting step
+                importance_weighting(measurement_covariance,measurement, z_predicted_measurement, particles, x)
 
 
-keep = np.empty(5)
-print keep
-keep[0] =1
-print keep
 
+    new_particles = low_variance_sampling(particles)
+
+    return new_particles
