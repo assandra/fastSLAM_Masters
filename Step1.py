@@ -8,6 +8,13 @@ import random
 import math
 import numpy as np
 
+alpha_1 = 0.99
+alpha_2 = 0.99
+alpha_3 = 0.99
+alpha_4 = 0.99
+alpha_5 = 0.99
+alpha_6 = 0.99
+
 def sample_motion_model_velocity(control,past_pose):
     """ This is the sampling algorithm which samples the velocity motion model to generate a new value for the robot pose.
         It samples this, with use of a given control vector and a past pose, which is uses to generate a random value for the recent pose,
@@ -17,12 +24,7 @@ def sample_motion_model_velocity(control,past_pose):
     """
 
     # Noise values, still need to determine, probably through testing
-    alpha_1 = 0.99
-    alpha_2 = 0.99
-    alpha_3 = 0.99
-    alpha_4 = 0.99
-    alpha_5 = 0.99
-    alpha_6 = 0.99
+
 
     #Need to find this value out - ROS
     duration = 1.1
@@ -57,6 +59,26 @@ def sample_motion_model_velocity(control,past_pose):
 
     return pose_new1
 
+def sample_motion_model_odometry(control_past,control_present, particle):
+    """Algorithm for sampling from the conditional density based on odometry information"""
+
+    #Calculate odometry values
+    delta_rot1 = math.atan2(control_past[1]-control_present[1], control_past[0] - control_present[0]) - control_present[2]
+    delta_trans = math.sqrt(((control_present[0] - control_past[0])**2) + (control_present[1] - control_past[1])**2)
+    delta_rot2 = control_past[2] - control_present[2] - delta_rot1
+
+    #Add noise
+    perturb_delta_rot1 = delta_rot1 - sample_normal_distribution(alpha_1*abs(delta_rot1) + alpha_2*delta_trans)
+    perturb_delta_trans = delta_trans - sample_normal_distribution(alpha_3*delta_trans + alpha_4*(abs(delta_rot1) + abs(delta_rot2)))
+    perturb_delta_rot2 = delta_rot2 - sample_normal_distribution(alpha_1*abs(delta_rot2) + alpha_2*delta_trans)
+
+    #Calculate new pose values
+    x_val = particle.pose[0] + perturb_delta_trans*math.cos(particle.pose[2] + perturb_delta_rot1)
+    y_val = particle.pose[1] + perturb_delta_trans*math.sin(particle.pose[2] + perturb_delta_rot1)
+    theta_val = particle.pose[2] + perturb_delta_rot1 + perturb_delta_rot2
+
+    new_pose = np.array(x_val, y_val, theta_val).T
+    return new_pose
 
 
 def sample_normal_distribution(b):
