@@ -1,12 +1,10 @@
-import numpy as np
-import math
-
-from Particle import Particle
+from tsfresh import extract_features
 
 from Step1 import sample_motion_model_odometry
 from Step2 import measurement_prediction, calculate_Jacobian, measurement_covariance, update_step, initialize_covariance
 from Step3 import importance_weighting
 from Step4 import low_variance_sampling
+from Data_Association import nearest_neighbours, validation_gate
 
 
 def fastSLAM_1_0(control_past,control_present, measurement, particles, landmarks):
@@ -17,8 +15,15 @@ def fastSLAM_1_0(control_past,control_present, measurement, particles, landmarks
         #Prediction Step
         particles[x].pose = sample_motion_model_odometry(control_past, control_present, particles[x].pose)
 
-        #Feature extractor - find one online
+        #Feature extractor RANSAC - will need to return coordinates of observed landmarks
         features_observed = [(1,2,1),(1,2,2)]
+
+
+        #Data Association - get the pair of nearest neighbours
+        pairs = nearest_neighbours(features_observed, landmarks)
+        validation_gate(features_observed[pairs[0]], landmarks[pairs[1]], particles[x].pose)
+
+
 
         #Run through each observed feature
         for elem in features_observed:

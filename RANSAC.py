@@ -23,13 +23,13 @@ def find_intercept_point(m, c, x0, y0):
     return x, y
 
 def ransac_plot(n, x, y, m, c, final=False, x_in=(), y_in=(), points=()):
-    fname = "output/figure_" + str(n) + ".png"
+    fname = "figure_" + str(n) + ".png"
     line_width = 1.
     line_color = '#0080ff'
     title = 'iteration ' + str(n)
 
     if final:
-        fname = "output/final.png"
+        fname = "final.png"
         line_width = 3.
         line_color = '#ff0000'
         title = 'final solution'
@@ -78,38 +78,80 @@ t = 3 # threshold
 n = 12 # minimum number of data values required to fit the model
 Rratio =  n/k # ratio of data points which must line within the model to assert the model fits the data well
 
-n_samples = 500 # number of input values WE USE SIZE OF DATA SET
+n_samples = 61 # number of input values WE USE SIZE OF DATA SET
 outlier_ratio = 0.4 # ratio of data that seats outside the fitted line THIS IS JUST A DIFFERENCE
 
 # NOT SURE WHAT THIS DOES
 n_inputs = 1
 n_outputs = 1
 
-# generate sample data WE WILL HAVE REAL DATA HERE
-x = 30*np.random.random((n_samples, n_inputs))
+# Data
+x = np.zeros([n_samples, 1], dtype=float)
+increment = 0.0686688498
+start_inc = 0
+
+
+
+
+for i in range(0,61):
+    start_inc = start_inc + increment
+
+    x[i] = start_inc
+    print x[i]
 
 # generate line's slope
 perfect_fit = 0.5*np.random.normal(size=(n_inputs, n_outputs))
 
-# compute output
-y = scipy.dot(x, perfect_fit)
+# compute output - dot product of radians array and perfect fit array
+f = open("2017-08-04-14-44-12_odom_laser_sonar_depth-pointsLASER.data", "r")
 
-x_noise= x + np.random.normal(size=x.shape)
-y_noise= y + np.random.normal(size=y.shape)
+#Read all the data files in, line for file in a list data structure
+f_list = f.readlines()
 
-data = np.hstack( (x_noise, y_noise) )
+print len(f_list)
+
+i = 0
+array_data = []
+while (i < len(f_list)):
+    f_data = f_list[i].split(",")
+    i = i+1
+    del f_data[0:11]
+    f_data = map(float, f_data)
+
+    array_data.append(f_data)
+
+
+
+y_1 = np.asarray(array_data[0])
+
+y = np.zeros([n_samples, 1], dtype=float)
+
+
+for i in range(0,61):
+
+
+    y[i] = y_1[i]
+
+
+print y.shape
+print x.shape
+print len(y)
+
+
+
+data = np.hstack( (x, y) )
 ratio = 0.
 model_m = 0.
 model_c = 0.
 
 
 
-
+# RANSAC iterations
 for it in range(k):
 
     #pick two random points
     n = 2
-    all_indices = np.arange(x_noise.shape[0])
+    all_indices = np.arange(x.shape[0])
     np.random.shuffle(all_indices)
 
     indices_1 = all_indices[:n]
@@ -154,13 +196,13 @@ for it in range(k):
     print '  model_m = ', model_m
     print '  model_c = ', model_c
 
-    ransac_plot(it, x_noise, y_noise, m, c, False, x_inliers, y_inliers, maybe_points)
+    ransac_plot(it, x, y, m, c, False, x_inliers, y_inliers, maybe_points)
 
     if num > n_samples*Rratio:
         print 'The model is found !'
         break
 
-ransac_plot(0, x_noise, y_noise, model_m, model_c, True)
+ransac_plot(0, x, y, model_m, model_c, True)
 
 print '\nFinal model:\n'
 print '  ratio = ', ratio

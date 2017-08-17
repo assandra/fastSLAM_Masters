@@ -32,7 +32,7 @@ path = []
 i = 0
 print len(odom_list)
 #Start loop to format and call function
-while (i<len(odom_list) -2):
+while (i<len(odom_list) -1):
     print "New step"
     #Format odometry data
     odom_array_past = odom_list[i].split( ",")

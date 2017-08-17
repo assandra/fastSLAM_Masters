@@ -3,7 +3,7 @@ class Particle:
     mu = []
     covariance = []
     ' Particle is created to hypothesises the robots pose '
-    def __init__(self, pose=[12,0,0]):
+    def __init__(self, pose=[0,0,0]):
         self.pose = pose
 
 
